@@ -1,4 +1,5 @@
 import express from "express";
+import { __dirname } from '../utils.js'
 import ProductManager from "../managers/product-manager.js";
 
 

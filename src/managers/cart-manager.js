@@ -1,4 +1,9 @@
-import { promises as fs } from "fs";
+import { promises as fs } from "fs"
+import ProductManager from "./product-manager.js";
+import { __dirname } from '../utils.js'
+
+const productManager = new ProductManager(__dirname + '/productos.json');
+
 
 class CartManager {
     constructor(path) {

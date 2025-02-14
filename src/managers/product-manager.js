@@ -25,8 +25,9 @@ class ProductManager {
     }
 
     async getProducts() {
-        return this.products;
+        return await this.leerArchivo()
     }
+    
 
     async getProductById(id) {
         return this.products.find(p => p.id === id) || null;

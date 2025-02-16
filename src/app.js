@@ -55,11 +55,12 @@ socketServer.on("connection", async (socket) => {
         await productManager.updateProduct(producto, producto.id);
         socketServer.emit("realtime", await productManager.getProducts());
     });
-
-    socket.on("delete-product", async (id) => {
+    socket.on('delete-product', async (id) => {
         await productManager.deleteProduct(id);
-        socketServer.emit("realtime", await productManager.getProducts());
+        const products = await productManager.getProducts()
+        socketServer.emit('realtime', products)
     });
+
 });
 serverHttp.listen(8080, () => {
     console.log("Servidor corriendo en http://localhost:8080");

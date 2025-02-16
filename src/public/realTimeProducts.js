@@ -21,8 +21,7 @@ socket.on('realtime', (data)=>{
         code.innerText = product.code
         const stock = document.createElement('p')
         stock.innerText = product.stock
-        const category = document.createElement('p')
-        category.innerText = product.category
+        
 
         div.appendChild(id)
         div.appendChild(title)
@@ -30,7 +29,7 @@ socket.on('realtime', (data)=>{
         div.appendChild(price)
         div.appendChild(code)
         div.appendChild(stock)
-        div.appendChild(category)
+    
         contenedorProductosRTP.appendChild(div)
     });
 })
@@ -42,9 +41,9 @@ const addProduct = ()=>{
     const price = document.querySelector('#add-price').value
     const code = document.querySelector('#add-code').value
     const stock = document.querySelector('#add-stock').value
-    const category = document.querySelector('#add-category').value
+    
 
-    const newProduct = {title,description,price,code,stock,category}
+    const newProduct = {title,description,price,code,stock}
     socket.emit("nuevo-producto", newProduct)
 
     document.querySelector('#add-title').value = ""
@@ -52,7 +51,7 @@ const addProduct = ()=>{
     document.querySelector('#add-price').value = ""
     document.querySelector('#add-code').value = ""
     document.querySelector('#add-stock').value = ""
-    document.querySelector('#add-category').value = ""
+
     
     
 }
@@ -64,25 +63,24 @@ document.querySelector('#button-update').addEventListener('click', () => {
     updateProduct()
 })
 
-const updateProduct = ()=>{
+const updateProduct = () => {
     const id = document.querySelector('#update-id').value
     const title = document.querySelector('#update-title').value
     const description = document.querySelector('#update-description').value
     const price = document.querySelector('#update-price').value
     const code = document.querySelector('#update-code').value
     const stock = document.querySelector('#update-stock').value
-    const category = document.querySelector('#update-category').value
-
-    const newProduct = {id, title,description,price,code,stock,category}
-    socket.emit("update-producto", newProduct)
     
+
+    const newProduct = { id, title, description, price, code, stock}
+    socket.emit("update-producto", newProduct)
+
     document.querySelector('#update-id').value = ""
     document.querySelector('#update-title').value = ""
     document.querySelector('#update-description').value = ""
     document.querySelector('#update-price').value = ""
     document.querySelector('#update-code').value = ""
     document.querySelector('#update-stock').value = ""
-    document.querySelector('#update-category').value = ""
     
 }
 

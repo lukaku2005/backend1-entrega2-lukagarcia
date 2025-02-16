@@ -16,8 +16,12 @@ class ProductManager {
     }
 
     async leerArchivo() {
-        const data = await fs.readFile(this.path, "utf-8");
-        return JSON.parse(data);
+        try {
+            const data = await fs.readFile(this.path, "utf-8")
+            return data ? JSON.parse(data) : []
+        } catch (error) {
+            return []
+        }
     }
 
     async guardarArchivo(arrayProductos) {
@@ -38,6 +42,32 @@ class ProductManager {
         const nuevoProducto = { id: newId, ...producto };
         this.products.push(nuevoProducto);
         await this.guardarArchivo(this.products);
+    }
+
+    async updateProduct(updatedProduct, id) {
+        await this.getProducts()
+        
+        const index = this.products.findIndex(p => p.id == id);
+        if (index === -1) {
+            console.log("ID no encontrado")
+            return
+        }
+    
+        this.products[index] = { ...this.products[index], ...updatedProduct, id }
+        await this.guardarArchivo(this.products)
+        console.log("Producto actualizado")
+    }
+
+    async deleteProduct(id) {
+        await this.getProducts()
+        const index = this.products.findIndex(obj => obj.id == id)
+        if (index !== -1) {
+            this.products.splice(index, 1)
+            await this.guardarArchivo(this.products)
+            console.log("Producto Eliminado")
+        } else {
+            console.log("ID no encontrado")
+        }
     }
 }
 

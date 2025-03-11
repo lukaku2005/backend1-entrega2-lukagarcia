@@ -26,7 +26,8 @@ mongoConnection().then(() => {
     const server = app.listen(PORT, () => {
         console.log(`Servidor arriba, en el puerto ${PORT}`);
     });
-  });
+});
+
 
 
 app.use(express.json());
@@ -53,7 +54,25 @@ app.get('/', async (req, res) => {
     }
 });
 
+app.get('/productos', async (req, res) => {
+    const cart = await Cart.findOne();  
 
+    
+    if (!cart) {
+        cart = new Cart({ products: [] });
+        await cart.save();
+        req.session.cartId = cart._id;  
+        console.log('Nuevo carrito creado:', cart._id);
+    }
+    
+
+    const productos = await Product.find();
+    res.render('productos', { productos, cartId: cart ? cart._id : 'newCartId' });
+});
+
+
+
+  
 
 
 
@@ -154,15 +173,16 @@ app.use('/api/products/', productRouter);
 app.use("/api/carts", cartsRouter)
 
 app.post('/api/carts', async (req, res) => {
+    
     try {
-      const newCart = new Cart({ products: [] });  
-      await newCart.save();  
-      res.status(201).json(newCart);  
+        const newCart = new Cart({ products: [] });
+        await newCart.save();
+        res.status(201).json(newCart);
     } catch (error) {
-      console.error("Error al crear el carrito:", error);
-      res.status(500).send({ message: 'Error al crear el carrito' });
+        console.error("Error al crear el carrito:", error);
+        res.status(500).send({ message: 'Error al crear el carrito' });
     }
-  });
+});
 
 app.get('/api/carts/:cid', async (req, res) => {
     try {
@@ -184,20 +204,23 @@ app.get('/api/carts/:cid', async (req, res) => {
 
 app.post('/api/carts/:cid/products', async (req, res) => {
     try {
-        const { cid } = req.params;  
-        const { pid, quantity } = req.body; 
+        const { cid } = req.params;
+        const { pid, quantity } = req.body;
 
         if (!pid || !quantity || quantity <= 0) {
             return res.status(400).json({ message: 'Producto y cantidad son requeridos' });
         }
+
         const cart = await Cart.findById(cid);
         if (!cart) {
             return res.status(404).json({ message: 'Carrito no encontrado' });
         }
+
         const product = await Product.findById(pid);
         if (!product) {
             return res.status(404).json({ message: 'Producto no encontrado' });
         }
+
         const existingProductIndex = cart.products.findIndex(p => p.product.toString() === pid);
 
         if (existingProductIndex > -1) {
@@ -206,39 +229,49 @@ app.post('/api/carts/:cid/products', async (req, res) => {
             cart.products.push({ product: pid, quantity });
         }
 
-        await cart.save();  
-        res.status(200).json(cart);  
-
+        await cart.save();
+        res.status(200).json(cart);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error al agregar el producto al carrito' });
     }
 });
 
+
   
 
-  app.put('/api/carts/:cid/products/:pid', async (req, res) => {
+app.post('/api/carts/:cid/products/:pid', async (req, res) => {
     try {
-        const cart = await Cart.findById(req.params.cid).populate('products.product');
-        const product = await Product.findById(req.params.pid);
-        
-        if (!cart || !product) {
-            return res.status(404).send({ message: 'Carrito o producto no encontrado' });
+        const { cid, pid } = req.params; 
+        const { quantity } = req.body;
+
+        if (!quantity || quantity <= 0) {
+            return res.status(400).json({ message: 'Cantidad no válida' });
         }
         
-        await updateProductInCart(req, res);
-        
-        
-        const updatedCart = await Cart.findById(req.params.cid).populate('products.product');
-        return res.status(200).render('index', { layout: 'main', cart: updatedCart });
-        
+        const cart = await Cart.findById(cid);
+        const product = await Product.findById(pid);
+
+        if (!cart || !product) {
+            return res.status(404).json({ message: 'Carrito o producto no encontrado' });
+        }
+
+        const existingProductIndex = cart.products.findIndex(p => p.product.toString() === pid);
+
+        if (existingProductIndex > -1) {
+            cart.products[existingProductIndex].quantity += quantity;
+        } else {
+            cart.products.push({ product: pid, quantity });
+        }
+
+        await cart.save();
+        res.status(200).json({ mensaje: 'Producto agregado al carrito' });
+
     } catch (error) {
         console.error(error);
-        return res.status(500).send({ message: 'Error al actualizar el carrito' });
+        res.status(500).json({ message: 'Error al agregar el producto al carrito' });
     }
 });
-
-
 
 
 app.use('/static', express.static(path.join(__dirname, 'public')));

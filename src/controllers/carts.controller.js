@@ -4,37 +4,36 @@ import { Product } from '../models/product.model.js';
 import mongoose from 'mongoose';
 
 
+
 export const addProductToCart = async (req, res) => {
   try {
-    const idCarrito = req.params.cid; 
-    const idProducto = req.params.pid; 
-    const { quantity } = req.body; 
+    const cartId = req.params.cid; 
+    const productId = req.params.pid; 
+    const { quantity } = req.body;
 
     if (!Number.isInteger(quantity) || quantity <= 0) {
       return res.status(400).send({ mensaje: 'La cantidad debe ser un número positivo' });
     }
-    const cart = await Cart.findById(idCarrito);
+   
+    const cart = await Cart.findById(cartId);
     if (!cart) {
       return res.status(404).send({ mensaje: 'El carrito no existe' });
     }
-    const product = await Product.findById(idProducto);
+
+    const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).send({ mensaje: 'El producto no existe' });
     }
 
-    const productIndex = cart.products.findIndex(p => p.product.toString() === idProducto);
+    const productIndex = cart.products.findIndex(p => p.product.toString() === productId);
 
     if (productIndex !== -1) {
-      await Cart.findOneAndUpdate(
-        { _id: idCarrito, 'products.product': idProducto },
-        { $set: { 'products.$.quantity': cart.products[productIndex].quantity + quantity } }
-      );
+      cart.products[productIndex].quantity += quantity;
     } else {
-      await Cart.findByIdAndUpdate(
-        idCarrito,
-        { $push: { products: { product: idProducto, quantity } } }
-      );
+      cart.products.push({ product: productId, quantity });
     }
+
+    await cart.save();
 
     return res.status(200).send({ mensaje: 'Producto agregado al carrito correctamente' });
   } catch (error) {
